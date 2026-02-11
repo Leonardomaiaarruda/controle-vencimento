@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Vencimentos - Nuvem</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <nav class="menu">
+        <div class="nav-links">
+            <button onclick="trocarTela('telaResumo')">📊 Resumo</button>
+            <button onclick="trocarTela('telaGeral')">📋 Geral</button>
+            <button onclick="trocarTela('telaVencidos')">🚫 Vencidos</button>
+            <button onclick="trocarTela('telaAlerta')">⚠️ Alerta</button>
+        </div>
+        
+        <div class="cloud-controls">
+            <button onclick="carregarDadosNuvem()" class="btn-sync" title="Recarregar dados da planilha">🔄 Atualizar</button>
+            <button onclick="salvarNaNuvem()" class="btn-save-cloud" title="Enviar alterações para a nuvem">💾 Salvar na Nuvem</button>
+        </div>
+    </nav>
+
+    <button onclick="alternarFormularioCadastro()" id="btnAbrirCadastro" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px; font-weight: bold;">
+    + Novo Cadastro
+    </button>
+
+    <div id="container-cadastro" style="display: none; background: #f9f9f9; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 2px solid #007bff; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">➕ Cadastrar Novo Documento</h3>
+            <button onclick="alternarFormularioCadastro()" style="background: none; border: none; font-size: 20px; cursor: pointer;">✖</button>
+        </div>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="novoNome" placeholder="Nome Completo" style="padding: 10px; flex: 2; border: 1px solid #ccc; border-radius: 4px;">
+            
+            <select id="novoDoc" style="padding: 10px; flex: 1; border: 1px solid #ccc; border-radius: 4px;">
+                <option value="">Selecione o Documento</option>
+                <option value="ASO">ASO</option>
+                <option value="NR-18">NR-18</option>
+                <option value="NR-35">NR-35</option>
+                <option value="NR-12">NR-12</option>
+                <option value="NR-06">NR-06</option>
+                <option value="VAC. ANT TETANICA">VAC. ANT TETANICA</option>
+            </select>
+
+            <input type="date" id="novaDataRenovacao" style="padding: 10px; flex: 1; border: 1px solid #ccc; border-radius: 4px;">
+            
+            <button onclick="adicionarNovo()" style="padding: 10px 25px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                Salvar na Planilha
+            </button>
+        </div>
+    </div>
+
+    <section id="telaResumo" class="tela">
+        <div class="cards-container">
+            <div class="card">
+                <h3>Total de Documentos</h3>
+                <p id="countTotal">0</p>
+            </div>
+            <div class="card card-vencido">
+                <h3>Vencidos</h3>
+                <p id="countVencidos">0</p>
+            </div>
+            <div class="card card-alerta">
+                <h3>Vencem em 30 dias</h3>
+                <p id="countAlerta">0</p>
+            </div>
+        </div>
+        
+        <div class="resumo-actions">
+            <div class="status-indicator">
+                <span class="dot"></span> 
+                <small>Sincronizado com a coluna C a G da planilha "Controle"</small>
+            </div>
+            <button onclick="exportarPlanilha()" class="btn-export">📥 Baixar Backup Excel (.xlsx)</button>
+        </div>
+    </section>
+
+    <section id="telaGeral" class="tela" style="display:none;">
+        <div class="controles-tabela">
+            <button id="btnAlternarOrdem" onclick="alternarOrdem()" class="btn-acao">🔄 Ordem: Nome (A-Z)</button>
+            <input type="text" id="inputBusca" onkeyup="filtrarPorNome()" placeholder="🔍 Pesquisar funcionário ou documento...">
+        </div>
+        <div class="table-wrapper">
+            <table id="tabelaGeral">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Documento</th>
+                        <th>Renovação</th>
+                        <th>Vencimento</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="telaVencidos" class="tela" style="display:none;">
+        <h2 class="title-vencidos">🚫 Registros Vencidos</h2>
+        <div class="table-wrapper">
+            <table id="tabelaVencidos">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                         <th>Documento</th>
+                         <th>Renovação</th>
+                        <th>Vencimento</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="telaAlerta" class="tela" style="display:none;">
+        <h2 class="title-alerta">⚠️ Vencem nos Próximos 30 Dias</h2>
+        <div class="table-wrapper">
+            <table id="tabelaAlerta">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Documento</th>
+                        <th>Renovação</th>
+                        <th>Vencimento</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </section>
+
+    <div id="modalEdicao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✏️ Editar Registro</h3>
+                <button onclick="fecharModal()" class="close-btn">&times;</button>
+            </div>
+            
+            <input type="hidden" id="editIndex">
+            
+            <div class="form-group">
+                <label>Nome do Funcionário:</label>
+                <input type="text" id="editNome">
+            </div>
+
+            <div class="form-group">
+                <label>Tipo de Documento:</label>
+                <input type="text" id="editDoc">
+            </div>
+
+            <div class="form-group">
+                <label>Data de Renovação:</label>
+                <input type="date" id="editVenc">
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="salvarEdicao()" class="btn-save">Aplicar Mudança</button>
+                <button onclick="fecharModal()" class="btn-cancel">Cancelar</button>
+            </div>
+            <p class="modal-footer-tip">*As alterações só serão definitivas na planilha após clicar em <strong>"Salvar na Nuvem"</strong>.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
