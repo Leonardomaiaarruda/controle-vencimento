@@ -11,6 +11,10 @@ th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
 th { background-color: #f8f9fa; }
 tr:nth-child(even) { background-color: #fafafa; }
 
+#inputBusca{
+    padding: 5px; border-radius: 5px; border: 1px solid silver
+}
+
 /* Status */
 .vencido { color: #e74c3c; font-weight: bold; }
 .alerta { color: #f39c12; font-weight: bold; }
@@ -204,6 +208,11 @@ tr:nth-child(even) { background-color: #fafafa; }
         display: block !important;
         float: none !important; /* Remove qualquer alinhamento antigo */
     }
+
+    #inputBusca{
+        width: 100%; padding: 5px; border-radius: 5px; border: 1px solid silver
+    }
+
 }
 
 
